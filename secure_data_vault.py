@@ -61,27 +61,37 @@ if st.button("Store Data"):
         st.warning("All fields are required to store data.")
 
 st.markdown("---")
-st.subheader("Retrieve Data")
+st.subheader("Retrieve or Delete Data")
 if not st.session_state.data_store:
     st.info("No data stored yet.")
 else:
-    selected_title = st.selectbox("Select data to retrieve", list(st.session_state.data_store.keys()))
+    selected_title = st.selectbox("Select data to retrieve or delete", list(st.session_state.data_store.keys()))
     retrieve_passkey = st.text_input("Enter passkey to decrypt", type="password")
-    if st.button("Retrieve Data"):
-        fernet = get_fernet(retrieve_passkey)
-        try:
-            decrypted = fernet.decrypt(st.session_state.data_store[selected_title]).decode()
-            st.success("Data decrypted successfully!")
-            st.code(decrypted)
-            st.session_state.failed_attempts = 0  # reset on success
-        except InvalidToken:
-            st.session_state.failed_attempts += 1
-            attempts_left = 3 - st.session_state.failed_attempts
-            st.error(f"Incorrect passkey. Attempts left: {attempts_left}")
-            if st.session_state.failed_attempts >= 3:
-                st.session_state.authorized = False
-                st.warning("Too many failed attempts. You have been logged out.")
-                st.experimental_rerun()
+    col1, col2 = st.columns(2)
+
+    with col1:
+        if st.button("Retrieve Data"):
+            fernet = get_fernet(retrieve_passkey)
+            try:
+                decrypted = fernet.decrypt(st.session_state.data_store[selected_title]).decode()
+                st.success("Data decrypted successfully!")
+                st.code(decrypted)
+                st.session_state.failed_attempts = 0  # reset on success
+            except InvalidToken:
+                st.session_state.failed_attempts += 1
+                attempts_left = 3 - st.session_state.failed_attempts
+                st.error(f"Incorrect passkey. Attempts left: {attempts_left}")
+                if st.session_state.failed_attempts >= 3:
+                    st.session_state.authorized = False
+                    st.warning("Too many failed attempts. You have been logged out.")
+                    st.experimental_rerun()
+
+    with col2:
+        if st.button("Delete Data"):
+            del st.session_state.data_store[selected_title]
+            st.success(f"Data titled '{selected_title}' has been deleted.")
+            st.rerun()
+
 
 st.markdown("---")
 st.caption("🔒 All data is stored securely in memory and cleared when the app is reset.")
