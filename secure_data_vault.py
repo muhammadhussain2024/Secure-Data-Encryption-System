@@ -43,7 +43,7 @@ if not st.session_state.authorized:
             st.success("Logged in successfully!")
         else:
             st.error("Incorrect password.")
-    st.stop()
+    st.stop()  # This stops the script here if not logged in
 
 # Main app UI
 st.title("🧠 In-Memory Secure Data Vault")
@@ -84,14 +84,13 @@ else:
                 if st.session_state.failed_attempts >= 3:
                     st.session_state.authorized = False
                     st.warning("Too many failed attempts. You have been logged out.")
-                    st.experimental_rerun()
+                    st.stop()  # Stop further actions (log out the user)
 
     with col2:
         if st.button("Delete Data"):
             del st.session_state.data_store[selected_title]
             st.success(f"Data titled '{selected_title}' has been deleted.")
-            st.rerun()
-
+            st.experimental_rerun()  # This will reset the app and remove deleted data
 
 st.markdown("---")
 st.caption("🔒 All data is stored securely in memory and cleared when the app is reset.")
